@@ -79,10 +79,16 @@ class WeReadExporter(object):
                 text = fp.read().decode()
 
             output = ""
+            have_title = False
             code_mode = False
             blank_line = False
             for line in text.split("\n"):
-                if line == "```":
+                # combine multi level-2 title, level-3 and other is ignored
+                if line.startswith('## '):
+                    if not have_title:
+                        output += '## ' + chapter['title'] + '\n'
+                        have_title = True
+                elif line == "```":
                     if not code_mode:
                         output += "\n%s\n" % line
                     else:
