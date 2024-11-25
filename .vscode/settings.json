@@ -4,6 +4,7 @@
     "getall",
     "levelname",
     "weasyprint",
+    "webcache",
     "weread"
   ],
   "workbench.colorCustomizations": {

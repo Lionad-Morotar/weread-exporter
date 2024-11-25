@@ -42,13 +42,13 @@ async def async_main():
         "--load-timeout",
         help="load chapter page timeout",
         type=int,
-        default=60,
+        default=20,
     )
     parser.add_argument(
         "--load-interval",
         help="load chapter page interval time",
         type=int,
-        default=30,
+        default=5,
     )
     parser.add_argument(
         "--css-file",
