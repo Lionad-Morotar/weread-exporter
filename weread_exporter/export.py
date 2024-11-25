@@ -79,18 +79,20 @@ class WeReadExporter(object):
                 text = fp.read().decode()
 
             output = ""
-            have_title = False
+            have_level_2_title = False
             code_mode = False
             blank_line = False
             footnote_break = False
-            for line in text.split("\n"):
+            for line in map(str.strip, text.split("\n")):
                 # combine multi level-2 title, level-3 and other is ignored
                 if line.startswith('## '):
-                    if not have_title:
+                    if have_level_2_title:
+                        output += "\n"
+                    else:
                         output += '#' * (chapter['level'] + 1) + ' ' + chapter['title'] + '\n\n'
                         for anchor in chapter['anchors']:
                             output += ('#' * (anchor['level'] + 1)) + ' ' + anchor['title'] + '\n'
-                        have_title = True
+                        have_level_2_title = True
                 elif line == "```":
                     if not code_mode:
                         output += "\n%s\n" % line
