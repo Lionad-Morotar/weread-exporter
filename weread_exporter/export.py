@@ -79,57 +79,61 @@ class WeReadExporter(object):
                 text = fp.read().decode()
 
             output = ""
+
+            # clean irregular markdown download from weread
             have_level_2_title = False
             code_mode = False
-            blank_line = False
-            footnote_break = False
-            for line in map(str.strip, text.split("\n")):
-                # combine multi level-2 title, level-3 and other is ignored
-                if line.startswith('## '):
-                    if have_level_2_title:
-                        output += "\n"
-                    else:
-                        output += '#' * (chapter['level'] + 1) + ' ' + chapter['title'] + '\n\n'
-                        for anchor in chapter['anchors']:
-                            output += ('#' * (anchor['level'] + 1)) + ' ' + anchor['title'] + '\n'
-                        have_level_2_title = True
-                elif line == "```":
-                    if not code_mode:
-                        output += "\n%s\n" % line
-                    else:
-                        output += "%s\n" % line
-                    code_mode = not code_mode
-                elif code_mode:
-                    output += line + "\n"
+            footnote_complete = True
+            para_wrap = True
+            for para in map(str.strip, text.split('\n\n')):
+                # for debug
+                # if chapter['id'] == 44:
+                #     print("\n=== start ===")
+                #     print(para)
+                #     print("=== end ===")
+                para_wrap = True
                 # correct anomaly break in footnote
-                elif re.match(r"^\[\d+\]", line):
-                    # for debug
-                    # output += "===" + str(footnote_break)
-                    if re.match(r"^\[\d+\]$", line):
+                if re.match(r"^\[\d+\]", para):
+                    footnote_complete = True
+                    for line in para.split("\n"):
                         output += line
-                    else:
-                        output += "\n\n%s" % line
-                        footnote_break = False
-                        if not line.endswith(('?', '.', '。', '”', '？')):
-                            footnote_break = True
-                elif line == "":
-                    if not footnote_break:
-                        blank_line = True
-                elif blank_line:
-                    if footnote_break:
+                    if not para.endswith(('?', '.', '。', '”', '？')):
+                        footnote_complete = False
+                elif not footnote_complete:
+                    for line in para.split("\n"):
                         output += line
-                        if line.endswith(('?', '.', '。', '”', '？')):
-                            footnote_break = False
-                    else:
-                        # for debug
-                        # output += "-:-"
-                        output += "\n\n%s" % line
-                    # for debug
-                    # output += "---" + str(footnote_break)
-                    blank_line = False
+                    if para.endswith(('?', '.', '。', '”', '？')):
+                        footnote_complete = True
+                        output += '\n'
+                elif re.match(r"^\s*$", para):
+                    para_wrap = False
                 else:
-                    output += line
+                    for line in para.split("\n"):
+                        # combine multi level-2 title, level-3 and other is ignored
+                        if line.startswith('## '):
+                            if not have_level_2_title:
+                                output += '#' * (chapter['level'] + 1) + ' ' + chapter['title']
+                                for anchor in chapter['anchors']:
+                                    output += ('#' * (anchor['level'] + 1)) + ' ' + anchor['title'] + '\n\n'
+                                have_level_2_title = True
+                            else:
+                                para_wrap = False
+                        elif line.startswith("```"):
+                            output += line + "\n"
+                            code_mode = not code_mode
+                        elif code_mode:
+                            output += line + "\n"
+                        elif re.match(r"^\s*$", line):
+                            # do nothing if extra blank line
+                            output += ''
+                        else:
+                            output += line
+                # do nothing if extra blank line between paragraphs
+                if para_wrap and footnote_complete:
+                    output += "\n\n"
             output += "\n"
+
+            # replace image url to local path
             pos = 0
             while pos >= 0:
                 pos = output.find("](https://", pos)
