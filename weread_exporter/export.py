@@ -82,11 +82,14 @@ class WeReadExporter(object):
             have_title = False
             code_mode = False
             blank_line = False
+            footnote_break = False
             for line in text.split("\n"):
                 # combine multi level-2 title, level-3 and other is ignored
                 if line.startswith('## '):
                     if not have_title:
-                        output += '#' * (chapter['level'] + 1) + ' ' + chapter['title'] + '\n'
+                        output += '#' * (chapter['level'] + 1) + ' ' + chapter['title'] + '\n\n'
+                        for anchor in chapter['anchors']:
+                            output += ('#' * (anchor['level'] + 1)) + ' ' + anchor['title'] + '\n'
                         have_title = True
                 elif line == "```":
                     if not code_mode:
