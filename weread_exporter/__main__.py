@@ -52,7 +52,7 @@ async def async_main():
     )
     parser.add_argument(
         "--css-file",
-        help="overide default css style",
+        help="override default css style",
     )
     parser.add_argument(
         "--headless", help="chrome headless", action="store_true", default=False
