@@ -23,6 +23,7 @@ class WeReadExporter(object):
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
         self._meta_path = os.path.join(self._save_dir, "meta.json")
+        self._meta_cn_path = os.path.join(self._save_dir, "meta_cn.json")
         self._chapter_dir = os.path.join(self._save_dir, "chapters")
         self._image_dir = os.path.join(self._save_dir, "images")
         if not os.path.isdir(self._image_dir):
@@ -46,6 +47,8 @@ class WeReadExporter(object):
             self._meta_data = await self._page.get_book_info()
             with open(self._meta_path, "w") as fp:
                 fp.write(json.dumps(self._meta_data))
+            with open(self._meta_cn_path, "w") as fp:
+                fp.write(json.dumps(self._meta_data, ensure_ascii=False))
         else:
             with open(self._meta_path) as fp:
                 text = fp.read()
@@ -69,7 +72,7 @@ class WeReadExporter(object):
             chapter_path = self._make_chapter_path(index, chapter["id"])
             if not os.path.isfile(chapter_path):
                 logging.warning(
-                    "[%s] File %s not exist" % (self.__class__.__name__, chapter_path)
+                    "[%s] File %s not exist", self.__class__.__name__, chapter_path
                 )
                 continue
             with open(chapter_path, "rb") as fp:
@@ -150,6 +153,24 @@ class WeReadExporter(object):
                 % html
             )
         return html
+    
+    async def save_markdown(self, save_path):
+        meta_data = await self._load_meta_data()
+        content = []
+        for index, chapter in enumerate(meta_data["chapters"]):
+            chapter_path = self._make_chapter_path(index, chapter["id"])
+            if not os.path.isfile(chapter_path):
+                logging.warning(
+                    "[%s] File %s not exist"
+                    % (self.__class__.__name__, chapter_path)
+                )
+                continue
+            with open(chapter_path, "rb") as chapter_fp:
+                text = chapter_fp.read().decode()
+            content.append(text + "\n")
+        
+        with open(save_path, "w") as save_fp:
+            save_fp.writelines(content)
 
     async def markdown_to_pdf(
         self, save_path, extra_css=None, image_format="jpg", dump_html=False

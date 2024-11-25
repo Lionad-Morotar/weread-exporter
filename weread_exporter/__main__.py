@@ -135,6 +135,13 @@ async def async_main():
         await exporter.pre_process_markdown()
         title = await exporter.get_book_title()
         title = utils.format_filename(title)
+        if "md" in args.output_format:
+            save_path = os.path.join(output_dir, "%s.md" % title)
+            if os.path.isfile(save_path):
+                logging.info("File %s exist, ignore export" % save_path)
+            else:
+                await exporter.save_markdown(save_path)
+                logging.info("Save file %s complete" % save_path)
         if "epub" in args.output_format:
             save_path = os.path.join(output_dir, "%s.epub" % title)
             if os.path.isfile(save_path):
