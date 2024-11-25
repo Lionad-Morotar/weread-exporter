@@ -103,10 +103,13 @@ class WeReadExporter(object):
                 elif re.match(r"^\[\d+\]", line):
                     # for debug
                     # output += "===" + str(footnote_break)
-                    output += "\n\n%s" % line
-                    footnote_break = False
-                    if not line.endswith(('?', '.', '。', '”', '？')):
-                        footnote_break = True
+                    if re.match(r"^\[\d+\]$", line):
+                        output += line
+                    else:
+                        output += "\n\n%s" % line
+                        footnote_break = False
+                        if not line.endswith(('?', '.', '。', '”', '？')):
+                            footnote_break = True
                 elif line == "":
                     if not footnote_break:
                         blank_line = True
@@ -116,6 +119,8 @@ class WeReadExporter(object):
                         if line.endswith(('?', '.', '。', '”', '？')):
                             footnote_break = False
                     else:
+                        # for debug
+                        # output += "-:-"
                         output += "\n\n%s" % line
                     # for debug
                     # output += "---" + str(footnote_break)
@@ -193,6 +198,7 @@ class WeReadExporter(object):
             with open(chapter_path, "rb") as chapter_fp:
                 text = chapter_fp.read().decode()
                 text = re.sub(r"\[(\d+)\]", rf"[^{chapter['id']}_\1]", text)
+                # 有些段中的引注，抓取时得到了不正确的换行，在这里会被错误的换成脚注
                 text = re.sub(r"(\r|\n|\r\n)(\[\^\d+_\d+\])", rf"\1\2: ", text)
             content.append(text + "\n")
         
