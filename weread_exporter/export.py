@@ -86,7 +86,7 @@ class WeReadExporter(object):
                 # combine multi level-2 title, level-3 and other is ignored
                 if line.startswith('## '):
                     if not have_title:
-                        output += '## ' + chapter['title'] + '\n'
+                        output += '#' * (chapter['level'] + 1) + ' ' + chapter['title'] + '\n'
                         have_title = True
                 elif line == "```":
                     if not code_mode:
