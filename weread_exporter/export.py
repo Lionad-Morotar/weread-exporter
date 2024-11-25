@@ -99,10 +99,26 @@ class WeReadExporter(object):
                     code_mode = not code_mode
                 elif code_mode:
                     output += line + "\n"
-                elif line == "":
-                    blank_line = True
-                elif blank_line:
+                # correct anomaly break in footnote
+                elif re.match(r"^\[\d+\]", line):
+                    # for debug
+                    # output += "===" + str(footnote_break)
                     output += "\n\n%s" % line
+                    footnote_break = False
+                    if not line.endswith(('?', '.', '。', '”', '？')):
+                        footnote_break = True
+                elif line == "":
+                    if not footnote_break:
+                        blank_line = True
+                elif blank_line:
+                    if footnote_break:
+                        output += line
+                        if line.endswith(('?', '.', '。', '”', '？')):
+                            footnote_break = False
+                    else:
+                        output += "\n\n%s" % line
+                    # for debug
+                    # output += "---" + str(footnote_break)
                     blank_line = False
                 else:
                     output += line
