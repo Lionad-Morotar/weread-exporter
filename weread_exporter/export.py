@@ -1,3 +1,4 @@
+import re
 import asyncio
 import json
 import logging
@@ -14,7 +15,6 @@ from weasyprint import HTML, CSS
 from . import utils
 
 current_path = os.path.dirname(os.path.abspath(__file__))
-
 
 class WeReadExporter(object):
     def __init__(self, page, save_dir):
@@ -167,6 +167,8 @@ class WeReadExporter(object):
                 continue
             with open(chapter_path, "rb") as chapter_fp:
                 text = chapter_fp.read().decode()
+                text = re.sub(r"\[(\d+)\]", rf"[^{chapter['id']}_\1]", text)
+                text = re.sub(r"(\r|\n|\r\n)(\[\^\d+_\d+\])", rf"\1\2: ", text)
             content.append(text + "\n")
         
         with open(save_path, "w") as save_fp:
