@@ -8,3 +8,5 @@ output/
 *.md
 *.log
 *.egg-info/
+screenshot.jpg
+webpage.html
