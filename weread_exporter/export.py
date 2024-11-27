@@ -114,6 +114,7 @@ class WeReadExporter(object):
                             if not have_level_2_title:
                                 output += '#' * (chapter['level'] + 1) + ' ' + chapter['title']
                                 for anchor in chapter['anchors']:
+                                    output += '\n\n'
                                     output += ('#' * (anchor['level'] + 1)) + ' ' + anchor['title'] + '\n\n'
                                 have_level_2_title = True
                             else:
