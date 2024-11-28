@@ -6,6 +6,7 @@
   "scripts": {
     "download": "python -m weread_exporter -b 59c328507273b68f59cb9d9 -o md",
     "transform-notes": "node ./transform_notes/index.js",
+    "expansion-notes": "node ./expansion_notes/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
