@@ -26,7 +26,7 @@ function cleanBookContent(text) {
     // 移除扉页版权信息
     .replace(/(\r|\n|\r\n)?## 版权信息[^#]*(\r|\n|\r\n)?#/, '#')
     // 合并超过两个换行的空行
-    .replace(/(\r|\n|\r\n){2,}/, '\n\n')
+    .replace(/(\r|\n|\r\n){2,}/g, '\n\n')
     .trim()
   // 将脚注移至尾部
   let res = null, footnotes = []
@@ -51,8 +51,8 @@ function cleanNote(note) {
     // 移除奇怪的字符如零宽空格
     .replace(/\u200b/g, "")
     // 合并超过两个换行的空行
-    .replace(/(\r|\n|\r\n){2,}/, '\n\n')
-    // 在可能换行的地方添加换行匹配
+    .replace(/(\r|\n|\r\n){2,}/g, '\n\n')
+    // 在可能换行的地方添加允许换行的匹配
     .replace(/(。|：|』|”|]|？)(?!$)/g, '$1\\n*')
     // 不精确匹配脚注
     .replace(/\[[^\]]*\]/g, "\\[([^\\]]*)\\]")
