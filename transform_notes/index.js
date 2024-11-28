@@ -21,11 +21,9 @@ const titles = [] // { title: 'xxx', level: 2 }
 meta.chapters.map(chapter => {
   titles.push({
     title: chapter.title,
-    level: chapter.level
+    level: chapter.level,
+    anchors: chapter.anchors || []
   })
-  if (chapter.anchors.length) {
-    titles.push(...chapter.anchors)
-  }
 })
 
 const results = []
@@ -47,7 +45,10 @@ notesContent
     if (findTitle) {
       result.type = 'title'
       result.mark = findTitle.title
-      result.data = findTitle.level
+      result.data = {
+        level: findTitle.level,
+        anchors: findTitle.anchors
+      }
     } else if (line.match(/^◆ (\d{4}\/\d{2}\/\d{2})发表想法/)) {
       result.type = 'comment'
       result.time = line.match(/^◆ (\d{4}\/\d{2}\/\d{2})发表想法/)[1]

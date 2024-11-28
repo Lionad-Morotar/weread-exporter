@@ -111,11 +111,7 @@ function adjustContext(matchRes, start, end) {
       if ((titleEndPos > titleLenMax) && (titleEndPos <= titleLenMax + noteContextSize) && (titleEndPos < matchRes.index)) {
         // console.log('[debug] start ', reg, start)
         start = Math.max(start, titleEndPos)
-        // if (isStartFromBeginning) {
-        //   start = Math.max(start, titleEndPos)
-        // } else {
-        //   start = Math.max(start, Math.max(0, matchRes.index - (titleLenMax + noteContextSize - titleEndPos)))
-        // }
+        // start = Math.max(start, Math.max(0, matchRes.index - (titleLenMax + noteContextSize - titleEndPos)))
         // console.log('[debug] start set to', reg, start)
         // console.log(matchRes.index - noteContextSize, titleLenMax, noteContextSize, titleEndPos)
         // console.log("\"", temp.slice(0, 150), "\"", titleMatchRes)
@@ -136,25 +132,28 @@ function adjustContext(matchRes, start, end) {
 
 let isContextNotEnd = false
 notes.forEach(note => {
+  // console.log('\n\n[note]', note.type, note.mark, rest.slice(0, 10))
   if (note.type === 'title') {
     // const titleMeters = '册部卷编章回节段'.split('')
     // const titleMeterIDX = titleMeters.findIndex(x => note.mark.includes(x))
     // const level = titleMeterIDX === -1 ? 2 : titleMeterIDX
-    const idx = rest.indexOf(note.mark)
-    output += `\n\n${'#'.repeat(+note.data + 1)} ${note.mark}\n\n`
-    rest = rest.slice(idx + note.mark.length + 2)
+    output += `\n\n${'#'.repeat(+(note.data?.level || 1) + 1)} ${note.mark}\n\n`
+    if (note.data?.anchors?.length) {
+      note.data.anchors.map(x => {
+        output += `\n\n${'#'.repeat(+(x?.level || 1) + 1)} ${x.title}\n\n`
+      })
+    }
   }
   if (note.type === 'comment') {
     // todo
   }
   // 显示划线句子前后多少字符
   if (note.type === 'mark') {
-    // console.log('\n\n[note]', note.mark)
     const cleanedNote = cleanNote(note.mark)
     const noteRegex = new RegExp(cleanedNote)
     const matchRes = rest.match(noteRegex)
     let matched, start, end
-    // console.log('[debug] matchRes', matchRes[0])
+    // console.log('[debug] matchRes', !!matchRes, noteRegex, rest.slice(0, 5))
     if (matchRes) {
       start = Math.max(0, matchRes.index - noteContextSize)
       end = matchRes.index + matchRes[0].length + noteContextSize
@@ -228,7 +227,11 @@ notes.forEach(note => {
       // console.log('\n--->output', output, '===', rest.slice(0, 5))
     }
   }
-
+  // console.log('rest s', rest.slice(0, 20))
+  rest = rest
+    .replace(/^\s+/, '')
+    .replace(/^#+\s+[^\n]*\n*/, '')
+  // console.log('rest e', rest.slice(0, 20))
   // if (wrapOutput) {
   //   output += '\n\n'
   // }
