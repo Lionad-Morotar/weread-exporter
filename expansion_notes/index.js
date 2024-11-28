@@ -79,59 +79,61 @@ notes.forEach(note => {
 })
 
 let output = ''
-let rest = bookContent
+let rest = bookContent, _lastRest
 const noteContextSize = 100
 function adjustContext(matchRes, start, end) {
-  // console.log('[debug] raw start end', start, end)
+  // console.log('[debug] raw start end', start, end, matchRes.index)
   // 将匹配截止到目标内容前后
-  const isStartFromBeginning = start === 0
-  const titleLenMax = isStartFromBeginning ? 0 : 100
-  const titleSearchStart = Math.max(0, start - titleLenMax)
-  const titleSearchEnd = end + titleLenMax
-  const titleToSearch = rest.slice(titleSearchStart, titleSearchEnd)
-  // console.log('[debug] titleToSearch', titleToSearch)
-  const targetRegex = [
+  const searchOffset = 100
+  const searchStartPos = Math.max(0, start - searchOffset)
+  const searchEndPos = Math.min(rest.length, end + searchOffset)
+  const searchRegExp = [
     // 标题
-    /\n#+\s+[^\n]*\n/,
+    /\n#+\s+[^\n]*\n/g,
     // 空行
-    /\n\n/
+    /\n\n/g
   ]
-  targetRegex.map(reg => {
-    let searchIDX = 0
-    while (searchIDX < titleToSearch.length) {
-      const temp = ' '.repeat(searchIDX) + titleToSearch.slice(searchIDX)
-      const titleMatchRes = temp.match(reg)
+  searchRegExp.map(reg => {
+    reg.lastIndex = searchStartPos
+    while (reg.lastIndex < searchEndPos) {
+      const titleMatchRes = reg.exec(rest)
+      // console.log('titleMatchRes', reg, reg.lastIndex, titleMatchRes?.index)
       if (!titleMatchRes) {
         break
       }
-      const titleLen = titleMatchRes[0].length
-      const titleStartPos = titleMatchRes.index
-      const titleEndPos = titleMatchRes.index + titleLen + (reg === targetRegex[1] ? -2 : 0)
-      // console.log('[debug] titleEndPos', titleEndPos, (titleEndPos > titleLenMax), (titleEndPos <= titleLenMax + noteContextSize))
-      if ((titleEndPos > titleLenMax) && (titleEndPos <= titleLenMax + noteContextSize) && (titleEndPos < matchRes.index)) {
+      const regMatchedLen = titleMatchRes[0].length
+      const regMatchedStartPos = titleMatchRes.index
+      const regMatchedEndPos = titleMatchRes.index + regMatchedLen // + (reg === searchRegExp[1] ? -2 : 0)
+      if ((regMatchedEndPos > (matchRes.index - searchOffset - noteContextSize)) && (regMatchedEndPos < matchRes.index)) {
         // console.log('[debug] start ', reg, start)
-        start = Math.max(start, titleEndPos)
-        // start = Math.max(start, Math.max(0, matchRes.index - (titleLenMax + noteContextSize - titleEndPos)))
+        start = Math.max(start, regMatchedEndPos)
         // console.log('[debug] start set to', reg, start)
-        // console.log(matchRes.index - noteContextSize, titleLenMax, noteContextSize, titleEndPos)
-        // console.log("\"", temp.slice(0, 150), "\"", titleMatchRes)
       }
-      // console.log('[debug] titleStartPos', titleStartPos, (titleStartPos < titleToSearch.length - titleLenMax), (titleStartPos > titleToSearch.length - titleLenMax - noteContextSize), matchRes.index + matchRes[0].length)
-      if ((titleStartPos < titleToSearch.length - titleLenMax) && (titleStartPos > titleToSearch.length - titleLenMax - noteContextSize)) {
+      if ((regMatchedStartPos > (matchRes.index + matchRes[0].length)) && (regMatchedStartPos < (matchRes.index + matchRes[0].length + noteContextSize + searchOffset))) {
         // console.log('[debug] end ', reg, end)
-        // end = Math.min(end, titleStartPos)
-        end = Math.min(end, matchRes.index + matchRes[0].length + (titleLenMax + noteContextSize - (titleToSearch.length - titleStartPos)))
-        // console.log('[debug] end set to', matchRes.index + matchRes[0].length + (titleLenMax + noteContextSize - (titleToSearch.length - titleStartPos)), 'now end is:', end, titleMatchRes)
+        end = Math.min(end, regMatchedStartPos)
+        // console.log('[debug] end set to', reg, end)
       }
-      // console.log("[debug] next", reg, titleMatchRes.index + titleMatchRes[0].length)
-      searchIDX = titleMatchRes.index + titleMatchRes[0].length
+      reg.lastIndex = titleMatchRes.index + titleMatchRes[0].length
+      // console.log('[debug] reg', reg, reg.lastIndex, titleMatchRes[0].length, titleMatchRes.index + titleMatchRes[0].length, searchEndPos)
     }
   })
   return [start, end]
 }
 
+function formatRest(source) {
+  source = source.replace(/^\s+/, '')
+  while (source.match(/^\#+\s+[^\n]*\n*/)) {
+    source = source.replace(/^\#+\s+[^\n]*\n*/g, '')
+  }
+  return source
+}
+
 let isContextNotEnd = false
 notes.forEach(note => {
+  _lastRest = rest
+  rest = formatRest(rest)
+
   // console.log('\n\n[note]', note.type, note.mark, rest.slice(0, 10))
   if (note.type === 'title') {
     // const titleMeters = '册部卷编章回节段'.split('')
@@ -200,27 +202,55 @@ notes.forEach(note => {
       }
     }
     if (matched) {
-      if (start === 0) {
-        wrapOutput = false
-      }
       if (note.type === 'mark') {
         if (isContextNotEnd && start !== 0) {
           output += '...'
           isContextNotEnd = false
         }
-        // console.log('rest.slice(start-1, 1)', rest.slice(start-1, 2))
-        // if (start && rest.slice(start-1, 1) !== '\n') {
-        //   output += '...'
-        // }
         const lastMatchedChar = matched[matched.length - 1]
         const ends = ['\n', '。', '？']
         if (!ends.find(x => x === lastMatchedChar)) {
           isContextNotEnd = true
         }
       }
-      if (rest.slice(0, start).includes('\n\n')) {
-        output += '\n\n'  
+      // 如果要回溯 output 才能匹配到笔记，说明笔记被截断，此时不需要换行
+      // TODO fixme
+      if (matchRes && start) {
+        output += '\n\n'
       }
+      // [
+      //   {
+      //     "type": "mark",
+      //     "mark": "日本传统家庭实行“长子继承制”",
+      //     "comment": "",
+      //     "time": "",
+      //     "data": ""
+      //   },
+      //   {
+      //     "type": "mark",
+      //     "mark": "日语里却几乎没有脏话，“唯二”的两句“脏话”还都是来自汉语。",
+      //     "comment": "",
+      //     "time": "",
+      //     "data": ""
+      //   }
+      // ]
+      // [
+      //   {
+      //     "type": "mark",
+      //     "mark": "日本人却不那么重视家族和亲戚关系，倒是发自内心地热爱“公司”“单位”等集体。在日本人的价值观中，“不给别人添麻烦”差不多是最高准则。",
+      //     "comment": "",
+      //     "time": "",
+      //     "data": ""
+      //   },
+      //   {
+      //     "type": "mark",
+      //     "mark": "“鸦片战争”在中国是国耻，迫使日本开国的武力威胁“黑船来航”却被日本人当成带领日本走入现代文明的“恩惠”。",
+      //     "comment": "",
+      //     "time": "",
+      //     "data": ""
+      //   }
+      // ]
+      // console.log(note.mark, start, lastRest.slice(0, start), lastRest.slice(0, start).split('').find(x => x === '\n'))
       output += matched
       // output += `\n\n---\n${note.mark}\n---\n\n`
       rest = rest.slice(end)
@@ -228,13 +258,8 @@ notes.forEach(note => {
     }
   }
   // console.log('rest s', rest.slice(0, 20))
-  rest = rest
-    .replace(/^\s+/, '')
-    .replace(/^#+\s+[^\n]*\n*/, '')
+  rest = formatRest(rest)
   // console.log('rest e', rest.slice(0, 20))
-  // if (wrapOutput) {
-  //   output += '\n\n'
-  // }
 })
 
 function cleanFootnotes(source, footnotes) {
