@@ -70,7 +70,19 @@ notesContent
     }
   })
 
-results = results
+const chapters = []
+function makeList(cs) {
+  cs.map(chapter => {
+    chapters.push(chapter)
+    if (chapter.anchors) {
+      makeList(chapter.anchors)
+    }
+  })
+}
+makeList(meta.chapters)
+
+let parentIDX = 0
+results
   .map(note => {
     function wash(text) {
       return text.replace(/^。/, '')
@@ -95,9 +107,33 @@ results = results
     return aIdx - bIdx
   })
   .flat()
+  .map(note => {
+    if (note.type === 'title') {
+      return parentIDX = chapters.findIndex(x => x.title === note.mark)
+    }
+    chapters[parentIDX].notes = chapters[parentIDX].notes || []
+    chapters[parentIDX].notes.push(note)
+  })
 
-// console.log('[info] results', results.length)
+const res = chapters
+  .map(chapter => {
+    return [
+      {
+        "type": "title",
+        "mark": chapter.title,
+        "comment": "",
+        "time": "",
+        "data": {
+          "level": chapter.level,
+          "anchors": []
+        }
+      },
+      ...(chapter.notes || []),
+    ]
+  })
+  .flat()
+// console.log('[info] res', res.length)
 
 
 const notesMetaDir = path.resolve(bookCacheDir, 'notes.json')
-fs.writeFileSync(notesMetaDir, JSON.stringify(results, null, 2))
+fs.writeFileSync(notesMetaDir, JSON.stringify(res, null, 2))

@@ -133,12 +133,18 @@ function formatRest(source) {
 }
 
 let isContextNotEnd = false
+let lastNote = null
 notes.forEach(note => {
   _lastRest = rest
   rest = formatRest(rest)
 
   // console.log('\n\n[note]', note.type, note.mark, rest.slice(0, 10))
   if (note.type === 'title') {
+    if (lastNote) {
+      if (lastNote.type === 'title' && (lastNote.data.level >= note.data.level)) {
+        output += '...'
+      }
+    }
     console.log('[info] processing chapter:', note.mark)
     // const titleMeters = '册部卷编章回节段'.split('')
     // const titleMeterIDX = titleMeters.findIndex(x => note.mark.includes(x))
@@ -264,6 +270,7 @@ notes.forEach(note => {
   // console.log('rest s', rest.slice(0, 20))
   rest = formatRest(rest)
   // console.log('rest e', rest.slice(0, 20))
+  lastNote = note
 })
 
 function cleanFootnotes(source, footnotes) {
