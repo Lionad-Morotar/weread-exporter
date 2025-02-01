@@ -5,11 +5,11 @@
 const fs = require('fs')
 const path = require('path')
 
-// 简读日本史
-const bookID = '59c328507273b68f59cb9d9'
+// 太白金星有点烦
+const bookID = '23e32130813ab82bdg015cd2'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 
-const bookDir = path.resolve(__dirname, `../output/简读日本史.md`)
+const bookDir = path.resolve(__dirname, `../output/太白金星有点烦.md`)
 const bookContentRaw = fs.readFileSync(bookDir, 'utf-8')
 const [bookContentFull, bookContent, bookFootnotes] = cleanBookContent(bookContentRaw)
 
@@ -27,6 +27,8 @@ function cleanBookContent(text) {
     .replace(/(\r|\n|\r\n)?## 版权信息[^#]*(\r|\n|\r\n)?#/, '#')
     // 合并超过两个换行的空行
     .replace(/(\r|\n|\r\n){2,}/g, '\n\n')
+    // 不知道为啥，《太白金星有点烦》中有大量的点号
+    .replace(/((\r|\n|\r\n)\`)|(\`(\r|\n|\r\n))/g, '\n')
     .trim()
   // 将脚注移至尾部
   let res = null, footnotes = []
@@ -296,5 +298,7 @@ function markNotes(source) {
 
 const outputDir = path.resolve(bookCacheDir, 'notes.expansion.md')
 const cleanedOutput = cleanBookContent(output)[1]
+// const noteMeta = `---\ntitle: ${'太白金星有点烦'}\ndescription: ${'ISBN 9787553815268'}\n---\n\n`
+// const expandedNotes = noteMeta + markNotes(cleanedOutput) + cleanFootnotes(cleanedOutput, bookFootnotes.join('\n'))
 const expandedNotes = markNotes(cleanedOutput) + cleanFootnotes(cleanedOutput, bookFootnotes.join('\n'))
 fs.writeFileSync(outputDir, expandedNotes, 'utf-8')

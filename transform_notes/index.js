@@ -5,8 +5,8 @@
 const fs = require('fs')
 const path = require('path')
 
-// 简读日本史
-const bookID = '59c328507273b68f59cb9d9'
+// 太白金星有点烦
+const bookID = '23e32130813ab82bdg015cd2'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 const metaDir = path.resolve(bookCacheDir, 'meta.json')
 

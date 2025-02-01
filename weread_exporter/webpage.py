@@ -280,7 +280,7 @@ class WeReadWebPage(object):
         if self._cookie:
             await self._inject_cookie()
 
-        await self._page.goto(self._home_url)
+        await self._page.goto(self._home_url, timeout=1000 * 120)
         # await self.wait_for_selector("div.readerFooter a")
         if force_login:
             await self.login()
@@ -332,7 +332,7 @@ class WeReadWebPage(object):
             )
             if avatar_url is None or not avatar_url.endswith("Default.svg"):
                 break
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
         else:
             raise RuntimeError("Wait for avatar timeout")
 
@@ -371,7 +371,7 @@ class WeReadWebPage(object):
             time0 = time.time()
             while time.time() - time0 < 300:
                 logging.info("[%s] Waiting for login" % self.__class__.__name__)
-                await asyncio.sleep(10)
+                await asyncio.sleep(3)
                 result = await self._page.evaluate(script)
                 if not result:
                     continue

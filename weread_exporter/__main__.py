@@ -42,7 +42,7 @@ async def async_main():
         "--load-timeout",
         help="load chapter page timeout",
         type=int,
-        default=20,
+        default=30,
     )
     parser.add_argument(
         "--load-interval",
@@ -118,6 +118,7 @@ async def async_main():
                     mock_user_agent=args.mock_user_agent,
                     proxy_server=args.proxy_server,
                 )
+                await asyncio.sleep(2)
             except RuntimeError:
                 logging.exception("Launch book %s home page failed" % book_id)
                 await asyncio.sleep(2)
