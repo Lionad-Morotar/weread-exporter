@@ -5,10 +5,10 @@
 const fs = require('fs')
 const path = require('path')
 
-const bookID = '30932ba0813ab9615g012cce'
+const bookID = '04932050813ab7900g0179b5'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 
-const bookDir = path.resolve(__dirname, `../output/奇点更近：雷·库兹韦尔新作，人工智能神预测.md`)
+const bookDir = path.resolve(__dirname, `../output/雪国.md`)
 const bookContentRaw = fs.readFileSync(bookDir, 'utf-8')
 const [bookContentFull, bookContent, bookFootnotes] = cleanBookContent(bookContentRaw)
 

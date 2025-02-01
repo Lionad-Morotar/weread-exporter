@@ -5,7 +5,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const bookID = '30932ba0813ab9615g012cce'
+const bookID = '04932050813ab7900g0179b5'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 const metaDir = path.resolve(bookCacheDir, 'meta.json')
 
@@ -116,6 +116,7 @@ results
   })
 
 const res = chapters
+  .filter(c => c.title !== '版权信息')
   .map(chapter => {
     return [
       {
