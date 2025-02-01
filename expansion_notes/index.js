@@ -289,7 +289,11 @@ function markNotes(source) {
   notes.forEach(note => {
     if (note.type === 'mark') {
       // 可能出现标签嵌套或交叉情况，但影响不大，暂时不处理
-      source = source.replace(new RegExp(`(${note.regex.source})`), '<mark>$1</mark>')
+      source = source.replace(new RegExp(`(${note.regex.source})`), (match, group1) => {
+        // markdown 中，<mark> 标签不能换行 
+        const res = group1.replace(/(\r|\n|\r\n)+/g, '<br/>')
+        return `<mark>${res}</mark>`
+      })
       // console.log('[debug]', new RegExp(`(${note.regex})`))
     }
   })
