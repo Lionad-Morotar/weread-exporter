@@ -39,7 +39,8 @@ notesContent
       // 移除不完整的页码（左）
       .replace(/^\d*\]/, '')
       // 移除不完整的页码（右）
-      .replace(/\[\d*$/, '')
+      // 移除奇奇怪怪的非笔记格式
+      .replace(/\[插图\]/g, '')
 
     const findTitle = titles.find(x => x.title === line)
     if (findTitle) {
