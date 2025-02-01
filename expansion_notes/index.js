@@ -5,11 +5,10 @@
 const fs = require('fs')
 const path = require('path')
 
-// 太白金星有点烦
-const bookID = '23e32130813ab82bdg015cd2'
+const bookID = '30932ba0813ab9615g012cce'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 
-const bookDir = path.resolve(__dirname, `../output/太白金星有点烦.md`)
+const bookDir = path.resolve(__dirname, `../output/奇点更近：雷·库兹韦尔新作，人工智能神预测.md`)
 const bookContentRaw = fs.readFileSync(bookDir, 'utf-8')
 const [bookContentFull, bookContent, bookFootnotes] = cleanBookContent(bookContentRaw)
 
@@ -59,7 +58,7 @@ function cleanNote(note) {
     // 不精确匹配脚注
     .replace(/\[[^\]]*\]/g, "\\[([^\\]]*)\\]")
     // 不精确匹配括号内容
-    .replace(/\([^)]*\)/g, "\\([^\\)]*\\)")
+    .replace(/\([^)]*\)/g, "(.*)")
     .trim()
 }
 
@@ -140,6 +139,7 @@ notes.forEach(note => {
 
   // console.log('\n\n[note]', note.type, note.mark, rest.slice(0, 10))
   if (note.type === 'title') {
+    console.log('[info] processing chapter:', note.mark)
     // const titleMeters = '册部卷编章回节段'.split('')
     // const titleMeterIDX = titleMeters.findIndex(x => note.mark.includes(x))
     // const level = titleMeterIDX === -1 ? 2 : titleMeterIDX
@@ -200,7 +200,7 @@ notes.forEach(note => {
         } else {
           // matched = ''
           // end = 0
-          console.error('[ERR]', note.mark)
+          // console.error('[ERR]', note.mark, noteRegex, rest.slice(0, 300))
           throw new Error('[ERR] unexpect matching, sliced note')
         }
       }

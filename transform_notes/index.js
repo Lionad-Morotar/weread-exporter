@@ -5,8 +5,7 @@
 const fs = require('fs')
 const path = require('path')
 
-// 太白金星有点烦
-const bookID = '23e32130813ab82bdg015cd2'
+const bookID = '30932ba0813ab9615g012cce'
 const bookCacheDir = path.resolve(__dirname, `../cache/${bookID}`)
 const metaDir = path.resolve(bookCacheDir, 'meta.json')
 
@@ -26,7 +25,7 @@ meta.chapters.map(chapter => {
   })
 })
 
-const results = []
+let results = []
 notesContent
   .split('\n')
   .filter(Boolean)
@@ -37,10 +36,13 @@ notesContent
       // 移除奇怪的字符如零宽空格
       .replace(/\u200b/g, "")
       // 移除不完整的页码（左）
-      .replace(/^\d*\]/, '')
+      .replace(/^\d*\]/g, '')
       // 移除不完整的页码（右）
+      .replace(/\[\d*$/g, '')
       // 移除奇奇怪怪的非笔记格式
       .replace(/\[插图\]/g, '')
+      // 移除数字间的空格（给数字划线会出现莫名奇妙的空格，而原书中没有）（这一条可能会破坏特定格式的书籍）
+      .replace(/(\d+) (\d+)/g, '$1$2')
 
     const findTitle = titles.find(x => x.title === line)
     if (findTitle) {
@@ -68,7 +70,7 @@ notesContent
     }
   })
 
-results
+results = results
   .map(note => {
     function wash(text) {
       return text.replace(/^。/, '')
@@ -77,6 +79,25 @@ results
     note.comment = wash(note.comment)
     return note
   })
+  .reduce((h, c) => {
+    if (c.type === 'title') {
+      h.push([c])
+    } else {
+      h[h.length - 1].push(c)
+    }
+    return h
+  }, [])
+  .sort((a, b) => {
+    if (!a[0].type === 'title') return 1
+    if (!b[0].type === 'title') return -1
+    const [titleA, titleB] = [a[0].mark, b[0].mark]
+    const [aIdx, bIdx] = [titles.findIndex(x => x.title === titleA), titles.findIndex(x => x.title === titleB)]
+    return aIdx - bIdx
+  })
+  .flat()
+
+// console.log('[info] results', results.length)
+
 
 const notesMetaDir = path.resolve(bookCacheDir, 'notes.json')
 fs.writeFileSync(notesMetaDir, JSON.stringify(results, null, 2))

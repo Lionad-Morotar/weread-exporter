@@ -67,6 +67,10 @@ class WeReadExporter(object):
                     fp.write(fd.read() + "\n")
 
     async def pre_process_markdown(self):
+        
+        def cleanLineContent(line):
+            return re.sub(r"(\d) (\d)", r"\1\2", line.replace("`", "")).strip()
+    
         meta_data = await self._load_meta_data()
         for index, chapter in enumerate(meta_data["chapters"]):
             chapter_path = self._make_chapter_path(index, chapter["id"])
@@ -86,8 +90,8 @@ class WeReadExporter(object):
             footnote_complete = True
             para_wrap = True
             for para in map(str.strip, text.split('\n\n')):
-                # for debug
-                # if chapter['id'] == 44:
+                # for debug, see meta.json for chapter id detail
+                # if chapter['id'] == 27:
                 #     print("\n=== start ===")
                 #     print(para)
                 #     print("=== end ===")
@@ -96,12 +100,12 @@ class WeReadExporter(object):
                 if re.match(r"^\[\d+\]", para):
                     footnote_complete = True
                     for line in para.split("\n"):
-                        output += line
+                        output += cleanLineContent(line)
                     if not para.endswith(('?', '.', '。', '”', '？')):
                         footnote_complete = False
                 elif not footnote_complete:
                     for line in para.split("\n"):
-                        output += line
+                        output += cleanLineContent(line)
                     if para.endswith(('?', '.', '。', '”', '？')):
                         footnote_complete = True
                         output += '\n'
@@ -120,15 +124,16 @@ class WeReadExporter(object):
                             else:
                                 para_wrap = False
                         elif line.startswith("```"):
-                            output += line + "\n"
+                            output += cleanLineContent(line) + "\n"
                             code_mode = not code_mode
                         elif code_mode:
-                            output += line + "\n"
+                            output += cleanLineContent(line) + "\n"
                         elif re.match(r"^\s*$", line):
                             # do nothing if extra blank line
                             output += ''
                         else:
-                            output += line
+                            # 在特定格式的书中会出问题
+                            output += cleanLineContent(line)
                 # do nothing if extra blank line between paragraphs
                 if para_wrap and footnote_complete:
                     output += "\n\n"

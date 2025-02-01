@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "download": "python -m weread_exporter -b 23e32130813ab82bdg015cd2 -o md",
+    "download": "python -m weread_exporter -b 30932ba0813ab9615g012cce -o md",
     "transform-notes": "node ./transform_notes/index.js",
     "expansion-notes": "node ./expansion_notes/index.js",
+    "start": "pnpm download && pnpm transform-notes && pnpm expansion-notes",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
